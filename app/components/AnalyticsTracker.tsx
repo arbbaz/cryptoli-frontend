@@ -103,6 +103,7 @@ export default function AnalyticsTracker() {
         sessionId,
         enteredAt: prevEntered,
         leftAt: now,
+        consent: true,
       }, true);
     }
 
@@ -120,6 +121,7 @@ export default function AnalyticsTracker() {
       sessionId,
       enteredAt,
       referrer: referrer || undefined,
+      consent: true,
       ...utm,
     });
 
@@ -134,6 +136,7 @@ export default function AnalyticsTracker() {
         sessionId,
         enteredAt: entered,
         leftAt,
+        consent: true,
       }, true);
     };
 
@@ -151,6 +154,7 @@ export default function AnalyticsTracker() {
         timezone: typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "",
         event: funnelEvent,
         sessionId,
+        consent: true,
         ...getPersistedUtm(),
       });
     };
