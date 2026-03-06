@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 
@@ -23,12 +23,7 @@ export function setAnalyticsConsent(accepted: boolean): void {
 
 export default function CookieConsent() {
   const t = useTranslations("cookieConsent");
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const consent = getAnalyticsConsent();
-    if (consent === null) setVisible(true);
-  }, []);
+  const [visible, setVisible] = useState<boolean>(() => getAnalyticsConsent() === null);
 
   const handleAccept = () => {
     setAnalyticsConsent(true);
