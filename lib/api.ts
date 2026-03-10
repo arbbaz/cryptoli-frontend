@@ -1,4 +1,11 @@
-import type { Comment, Complaint, Review, UserProfile, VoteResponse } from "./types";
+import type {
+  Comment,
+  Complaint,
+  NotificationItem,
+  Review,
+  UserProfile,
+  VoteResponse,
+} from "./types";
 import { getApiBaseUrl } from "./env";
 import { safeApiMessage } from "./apiErrors";
 
@@ -123,6 +130,68 @@ export const authApi = {
 
   me: async () => {
     return fetchApi<{ user: UserProfile }>('/auth/me');
+  },
+
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }) => {
+    return fetchApi<{ message: string }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateProfile: async (data: {
+    name?: string;
+    username?: string;
+    bio?: string;
+  }) => {
+    return fetchApi<{ user: UserProfile }>('/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+};
+
+export const notificationsApi = {
+  list: async () => {
+    return fetchApi<{
+      notifications: NotificationItem[];
+      unreadCount: number;
+    }>('/notifications');
+  },
+
+  registerPushSubscription: async (subscription: PushSubscription) => {
+    const sub = subscription.toJSON();
+    if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) {
+      return { data: undefined, error: 'Invalid subscription' };
+    }
+    return fetchApi<{ success: boolean }>('/notifications/push-subscription', {
+      method: 'POST',
+      body: JSON.stringify({
+        endpoint: sub.endpoint,
+        keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+      }),
+    });
+  },
+
+  markRead: async (id: string) => {
+    return fetchApi<{ success: boolean; unreadCount: number }>(
+      `/notifications/${id}/read`,
+      {
+        method: 'POST',
+      },
+    );
+  },
+
+  markAllRead: async () => {
+    return fetchApi<{ success: boolean; unreadCount: number }>(
+      '/notifications/read-all',
+      {
+        method: 'POST',
+      },
+    );
   },
 };
 

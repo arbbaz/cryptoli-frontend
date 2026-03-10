@@ -105,6 +105,36 @@
     "accept": "Accepteren",
     "decline": "Weigeren"
   },
+  "notifications": {
+    "title": "Meldingen",
+    "markAllRead": "Alles als gelezen markeren",
+    "loading": "Laden…",
+    "empty": "Nog geen meldingen"
+  },
+  "profile": {
+    "editTitle": "Profiel bewerken",
+    "editDescription": "Wijzig je naam, gebruikersnaam en bio.",
+    "name": "Weergavenaam",
+    "namePlaceholder": "Je naam",
+    "username": "Gebruikersnaam",
+    "usernamePlaceholder": "Gebruikersnaam",
+    "bio": "Bio",
+    "bioPlaceholder": "Korte bio",
+    "saveChanges": "Opslaan",
+    "noChanges": "Geen wijzigingen",
+    "updateSuccess": "Profiel bijgewerkt",
+    "updateError": "Er ging iets mis. Probeer het opnieuw.",
+    "changePasswordTitle": "Wachtwoord wijzigen",
+    "changePasswordDescription": "Voer je huidige wachtwoord in en kies een nieuw.",
+    "currentPassword": "Huidig wachtwoord",
+    "currentPasswordPlaceholder": "Huidig wachtwoord",
+    "newPassword": "Nieuw wachtwoord",
+    "newPasswordPlaceholder": "Nieuw wachtwoord (min. 8 tekens)",
+    "confirmPassword": "Nieuw wachtwoord bevestigen",
+    "confirmPasswordPlaceholder": "Nieuw wachtwoord bevestigen",
+    "updatePassword": "Wachtwoord bijwerken",
+    "passwordChanged": "Wachtwoord gewijzigd"
+  },
   "privacy": {
     "title": "Privacybeleid",
     "lastUpdated": "Laatst bijgewerkt: maart 2026",

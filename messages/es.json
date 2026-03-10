@@ -82,6 +82,36 @@
   },
   "footer": {
     "copyright": "Copyright © 2026 Brand • Todos los derechos reservados"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todo como leído",
+    "loading": "Cargando…",
+    "empty": "Aún no hay notificaciones"
+  },
+  "profile": {
+    "editTitle": "Editar perfil",
+    "editDescription": "Actualiza tu nombre, usuario y bio.",
+    "name": "Nombre",
+    "namePlaceholder": "Tu nombre",
+    "username": "Usuario",
+    "usernamePlaceholder": "Usuario",
+    "bio": "Bio",
+    "bioPlaceholder": "Una breve bio",
+    "saveChanges": "Guardar",
+    "noChanges": "Sin cambios",
+    "updateSuccess": "Perfil actualizado",
+    "updateError": "Algo salió mal. Inténtalo de nuevo.",
+    "changePasswordTitle": "Cambiar contraseña",
+    "changePasswordDescription": "Introduce tu contraseña actual y elige una nueva.",
+    "currentPassword": "Contraseña actual",
+    "currentPasswordPlaceholder": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Nueva contraseña (mín. 8 caracteres)",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirmar nueva contraseña",
+    "updatePassword": "Actualizar contraseña",
+    "passwordChanged": "Contraseña actualizada"
   }
 }
 

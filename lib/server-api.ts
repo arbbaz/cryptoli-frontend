@@ -1,5 +1,5 @@
 import { getBackendUrl } from "./env";
-import type { Review, UserProfile } from "./types";
+import type { Review, UserProfile, Complaint } from "./types";
 import { hasLikelyAuthCookie } from "./authCookies";
 
 export interface ServerAuthResult {
@@ -73,5 +73,43 @@ export async function getServerReviews(options?: {
     };
   } catch {
     return { reviews: [] };
+  }
+}
+
+export interface ServerComplaintsResult {
+  complaints: Complaint[];
+}
+
+/**
+ * Server-only: fetch complaints for the complaints page.
+ */
+export async function getServerComplaints(options?: {
+  limit?: number;
+  page?: number;
+  cookieHeader?: string;
+}): Promise<ServerComplaintsResult> {
+  const base = getBackendUrl();
+  if (!base) return { complaints: [] };
+  const limit = options?.limit ?? 10;
+  const page = options?.page ?? 1;
+  try {
+    const url = `${base}/api/complaints?limit=${limit}&page=${page}`;
+    const headers: HeadersInit = {};
+    if (options?.cookieHeader) {
+      headers["Cookie"] = options.cookieHeader;
+    }
+    const res = await fetch(url, {
+      headers,
+      next: { revalidate: 30 },
+    });
+    if (!res.ok) {
+      return { complaints: [] };
+    }
+    const data = (await res.json()) as { complaints?: Complaint[] };
+    return {
+      complaints: Array.isArray(data?.complaints) ? data.complaints : [],
+    };
+  } catch {
+    return { complaints: [] };
   }
 }

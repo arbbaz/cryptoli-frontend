@@ -10,7 +10,7 @@ export default async function Home() {
     ? cookieHeader
     : undefined;
   const { reviews } = await getServerReviews({
-    limit: 20,
+    limit: 10,
     cookieHeader: authCookieHeader,
   });
 

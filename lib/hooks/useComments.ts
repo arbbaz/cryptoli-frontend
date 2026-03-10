@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { commentsApi } from "@/lib/api";
 import type { Comment } from "@/lib/types";
 import { createCommentSchema } from "@/lib/validations";
 import { useToast } from "@/app/contexts/ToastContext";
 import { safeApiMessage } from "@/lib/apiErrors";
+import { useSocket } from "@/lib/socket";
 
 type CommentTargetKey = "reviewId" | "complaintId" | "postId";
 
@@ -17,12 +18,27 @@ interface UseCommentsOptions {
 
 export function useComments({ targetKey, targetId, initialCount = 0 }: UseCommentsOptions) {
   const { showToast } = useToast();
+  const { socket } = useSocket();
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [commentContent, setCommentContent] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentCount, setCommentCount] = useState(initialCount);
+
+  // Real-time comment count for reviews
+  useEffect(() => {
+    if (targetKey !== "reviewId" || !socket) return;
+    const handleCount = (payload: { reviewId: string; commentCount: number }) => {
+      if (payload.reviewId === targetId) {
+        setCommentCount(payload.commentCount);
+      }
+    };
+    socket.on("review:comment:count", handleCount);
+    return () => {
+      socket.off("review:comment:count", handleCount);
+    };
+  }, [targetKey, targetId, socket]);
 
   const buildCommentFilter = () => ({ [targetKey]: targetId });
 

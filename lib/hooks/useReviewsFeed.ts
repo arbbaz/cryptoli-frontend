@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { reviewsApi } from "@/lib/api";
 import { useSocket } from "@/lib/socket";
 import { useToast } from "@/app/contexts/ToastContext";
 import type { Review } from "@/lib/types";
+
+const PAGE_SIZE = 10;
 
 interface VoteUpdatePayload {
   reviewId: string;
@@ -15,15 +17,26 @@ interface VoteUpdatePayload {
 export function useReviewsFeed(initialReviews?: Review[]) {
   const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
   const [loading, setLoading] = useState(initialReviews == null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const pageRef = useRef(initialReviews?.length ? 1 : 0);
   const { socket } = useSocket();
   const { showToast } = useToast();
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
+    pageRef.current = 0;
     try {
-      const response = await reviewsApi.list({ status: "APPROVED", limit: 20 });
+      const response = await reviewsApi.list({
+        status: "APPROVED",
+        limit: PAGE_SIZE,
+        page: 1,
+      });
       if (response.data?.reviews) {
         setReviews(response.data.reviews);
+        const pag = response.data.pagination;
+        setHasMore(pag ? pag.page < pag.totalPages : false);
+        pageRef.current = 1;
       } else if (response.error) {
         showToast(response.error, "error");
       }
@@ -31,6 +44,32 @@ export function useReviewsFeed(initialReviews?: Review[]) {
       setLoading(false);
     }
   }, [showToast]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    const nextPage = pageRef.current + 1;
+    setLoadingMore(true);
+    try {
+      const response = await reviewsApi.list({
+        status: "APPROVED",
+        limit: PAGE_SIZE,
+        page: nextPage,
+      });
+      if (response.data?.reviews?.length) {
+        setReviews((prev) => [...prev, ...response.data!.reviews]);
+        const pag = response.data!.pagination;
+        setHasMore(pag ? pag.page < pag.totalPages : false);
+        pageRef.current = nextPage;
+      } else {
+        setHasMore(false);
+      }
+      if (response.error) {
+        showToast(response.error, "error");
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasMore, loadingMore, showToast]);
 
   const updateReviewVote = useCallback((reviewId: string, helpfulCount: number, downVoteCount: number) => {
     setReviews((prevReviews) =>
@@ -53,6 +92,9 @@ export function useReviewsFeed(initialReviews?: Review[]) {
   useEffect(() => {
     if (initialReviews == null) {
       void fetchReviews();
+    } else {
+      pageRef.current = 1;
+      setHasMore(initialReviews.length >= PAGE_SIZE);
     }
   }, [fetchReviews, initialReviews]);
 
@@ -98,6 +140,9 @@ export function useReviewsFeed(initialReviews?: Review[]) {
     reviews,
     setReviews,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     fetchReviews,
     updateReviewVote,
   };

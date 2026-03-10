@@ -15,6 +15,10 @@ function debugError(...args: unknown[]) {
   if (isDev) console.error(...args);
 }
 
+function debugWarn(...args: unknown[]) {
+  if (isDev) console.warn(...args);
+}
+
 export function getSocket(): Socket | null {
   if (typeof window === 'undefined') {
     return null;
@@ -25,14 +29,18 @@ export function getSocket(): Socket | null {
       process.env.NEXT_PUBLIC_SOCKET_URL ||
       window.location.origin;
     debugLog('🔌 Initializing socket connection to:', socketUrl);
+    if (isDev && !process.env.NEXT_PUBLIC_SOCKET_URL && socketUrl === window.location.origin) {
+      debugWarn('💡 Socket will connect to same origin. If your API runs elsewhere, set NEXT_PUBLIC_SOCKET_URL in .env.local');
+    }
     socketInstance = io(socketUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
+      withCredentials: true,
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: Infinity, // Keep trying to reconnect
-      reconnectionDelayMax: 5000,
-      timeout: 20000,
+      reconnectionDelay: 2000,
+      reconnectionAttempts: Infinity,
+      reconnectionDelayMax: 10000,
+      timeout: 30000,
       forceNew: false,
       autoConnect: true,
     });
@@ -47,7 +55,8 @@ export function getSocket(): Socket | null {
     });
 
     socketInstance.on('connect_error', (error) => {
-      debugError('❌ Socket connection error:', error);
+      // Log as warning so app doesn't look broken; socket is optional (notifications, real-time counts)
+      debugWarn('⚠️ Socket connection failed:', error.message || error);
     });
 
     socketInstance.on('reconnect', (attemptNumber) => {
@@ -59,7 +68,7 @@ export function getSocket(): Socket | null {
     });
 
     socketInstance.on('reconnect_error', (error) => {
-      debugError('❌ Reconnection error:', error);
+      debugWarn('⚠️ Reconnection failed:', error.message || error);
     });
 
     socketInstance.on('reconnect_failed', () => {
@@ -102,4 +111,15 @@ export function useSocket() {
   }, [socket]);
 
   return { socket, isConnected };
+}
+
+export function refreshSocketConnection(): void {
+  if (!socketInstance) {
+    return;
+  }
+
+  if (socketInstance.connected) {
+    socketInstance.disconnect();
+  }
+  socketInstance.connect();
 }

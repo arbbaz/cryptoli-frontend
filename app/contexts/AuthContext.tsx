@@ -26,6 +26,7 @@ function sessionUserToProfile(sessionUser: {
     id: sessionUser.id,
     email: sessionUser.email ?? undefined,
     username: sessionUser.username,
+    name: sessionUser.name ?? undefined,
     avatar: sessionUser.avatar ?? undefined,
     verified: sessionUser.verified ?? false,
     bio: sessionUser.bio ?? undefined,

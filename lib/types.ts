@@ -93,8 +93,26 @@ export interface UserProfile {
   id: string;
   email?: string;
   username: string;
+  name?: string | null;
   avatar?: string;
   verified?: boolean;
   bio?: string;
   reputation?: number;
+}
+
+export interface NotificationItem {
+  id: string;
+  type:
+    | "NEW_REVIEW"
+    | "NEW_COMMENT"
+    | "NEW_REACTION"
+    | "REVIEW_APPROVED"
+    | "REVIEW_REJECTED"
+    | "NEW_FOLLOWER"
+    | "MENTION";
+  title: string;
+  message: string;
+  link?: string | null;
+  read: boolean;
+  createdAt: string;
 }

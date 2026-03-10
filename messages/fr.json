@@ -96,6 +96,36 @@
   "footer": {
     "copyright": "Copyright © 2026 Brand • Tous droits réservés",
     "title": "cryptoi"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "loading": "Chargement…",
+    "empty": "Aucune notification"
+  },
+  "profile": {
+    "editTitle": "Modifier le profil",
+    "editDescription": "Mettez à jour votre nom, pseudo et bio.",
+    "name": "Nom affiché",
+    "namePlaceholder": "Votre nom",
+    "username": "Pseudo",
+    "usernamePlaceholder": "Pseudo",
+    "bio": "Bio",
+    "bioPlaceholder": "Courte bio",
+    "saveChanges": "Enregistrer",
+    "noChanges": "Aucun changement",
+    "updateSuccess": "Profil mis à jour",
+    "updateError": "Une erreur s'est produite. Réessayez.",
+    "changePasswordTitle": "Changer le mot de passe",
+    "changePasswordDescription": "Entrez votre mot de passe actuel et choisissez-en un nouveau.",
+    "currentPassword": "Mot de passe actuel",
+    "currentPasswordPlaceholder": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordPlaceholder": "Nouveau mot de passe (min. 8 caractères)",
+    "confirmPassword": "Confirmer le mot de passe",
+    "confirmPasswordPlaceholder": "Confirmer le mot de passe",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "passwordChanged": "Mot de passe modifié"
   }
 }
 

@@ -5,15 +5,18 @@ import { useEffect, useState } from "react";
 import { useTranslations } from 'next-intl';
 import { signIn, useSession } from "next-auth/react";
 import { helpMenuItems, topRatedCards } from "../data/constants";
+import { Link } from "@/i18n/routing";
 import Separator from "./Separator";
 import TopRatedCard from "./TopRatedCard";
 import Toast from "./Toast";
 import { authApi, trendingApi } from "../../lib/api";
-import { loginSchema, registerSchema } from "../../lib/validations";
+import { loginSchema, registerSchema, updateProfileSchema, changePasswordFormSchema } from "../../lib/validations";
 import { trackAnalyticsEvent } from "./AnalyticsTracker";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../contexts/AuthContext";
 import { truncateWithEllipsis } from "../utils/textUtils";
+
+type SidebarView = "help" | "edit-profile" | "change-password";
 
 type TopRatedCardData = {
   title: string;
@@ -35,7 +38,7 @@ type TopRatedCardData = {
 export default function RightSidebar() {
   const t = useTranslations();
   const { status } = useSession();
-  const { isLoggedIn, refreshAuth } = useAuth();
+  const { isLoggedIn, refreshAuth, user: authUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(true);
@@ -52,6 +55,107 @@ export default function RightSidebar() {
     }))
   );
   const isAuthenticated = isLoggedIn || status === "authenticated";
+
+  const [sidebarView, setSidebarView] = useState<SidebarView>("help");
+  const [profileName, setProfileName] = useState("");
+  const [profileUsername, setProfileUsername] = useState("");
+  const [profileBio, setProfileBio] = useState("");
+  const [profileSubmitting, setProfileSubmitting] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
+  useEffect(() => {
+    if (authUser && isAuthenticated) {
+      setProfileName(authUser.name ?? "");
+      setProfileUsername(authUser.username ?? "");
+      setProfileBio(authUser.bio ?? "");
+    }
+  }, [authUser, isAuthenticated]);
+
+  const handleEditProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authUser) return;
+    setProfileError("");
+    setProfileSubmitting(true);
+    try {
+      const payload: { name?: string; username?: string; bio?: string } = {};
+      if (profileName.trim() !== (authUser.name ?? "")) payload.name = profileName.trim();
+      if (profileUsername.trim() !== (authUser.username ?? "")) payload.username = profileUsername.trim();
+      if (profileBio.trim() !== (authUser.bio ?? "")) payload.bio = profileBio.trim();
+      if (Object.keys(payload).length === 0) {
+        setToast({ message: t("profile.noChanges"), type: "error" });
+        setProfileSubmitting(false);
+        return;
+      }
+      const parsed = updateProfileSchema.safeParse(payload);
+      if (!parsed.success) {
+        const msg = parsed.error.issues[0]?.message ?? "Validation failed";
+        setProfileError(msg);
+        setToast({ message: msg, type: "error" });
+        setProfileSubmitting(false);
+        return;
+      }
+      const res = await authApi.updateProfile(parsed.data);
+      if (res.error) {
+        setProfileError(res.error);
+        setToast({ message: res.error, type: "error" });
+        setProfileSubmitting(false);
+        return;
+      }
+      await refreshAuth();
+      setToast({ message: t("profile.updateSuccess"), type: "success" });
+      setSidebarView("help");
+    } catch {
+      setProfileError(t("profile.updateError"));
+      setToast({ message: t("profile.updateError"), type: "error" });
+    } finally {
+      setProfileSubmitting(false);
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSubmitting(true);
+    try {
+      const parsed = changePasswordFormSchema.safeParse({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      if (!parsed.success) {
+        const msg = parsed.error.issues[0]?.message ?? "Validation failed";
+        setPasswordError(msg);
+        setToast({ message: msg, type: "error" });
+        setPasswordSubmitting(false);
+        return;
+      }
+      const res = await authApi.changePassword({
+        currentPassword: parsed.data.currentPassword,
+        newPassword: parsed.data.newPassword,
+      });
+      if (res.error) {
+        setPasswordError(res.error);
+        setToast({ message: res.error, type: "error" });
+        setPasswordSubmitting(false);
+        return;
+      }
+      setToast({ message: t("profile.passwordChanged"), type: "success" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setSidebarView("help");
+    } catch {
+      setPasswordError(t("profile.updateError"));
+      setToast({ message: t("profile.updateError"), type: "error" });
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
 
   const helpMenuTranslations = [
     `${t('sidebar.readMessages')} (29)`,
@@ -239,6 +343,130 @@ export default function RightSidebar() {
       )}
       <aside className="space-y-3 px-4 sm:px-0 lg:pl-5 sidebar-border-left">
       {isAuthenticated ? (
+        sidebarView === "edit-profile" ? (
+          <div className="card-base border border-[#E5E5E5] p-5 mt-4 z-10">
+            <h3 className="text-heading-center">{t("profile.editTitle")}</h3>
+            <p className="text-description mt-2">{t("profile.editDescription")}</p>
+            <div className="mt-6 mb-6">
+              <Separator className="bg-[#E5E5E5]" />
+            </div>
+            <form onSubmit={handleEditProfileSubmit} className="">
+              <div className="mb-3">
+                <label htmlFor="sidebar-profile-name" className="text-label mb-2 ml-2">{t("profile.name")}</label>
+                <input
+                  id="sidebar-profile-name"
+                  type="text"
+                  placeholder={t("profile.namePlaceholder")}
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  className="w-full input-field border-[#E5E5E5]"
+                />
+              </div>
+              <div className="mb-3 mt-4">
+                <label htmlFor="sidebar-profile-username" className="text-label mb-2 ml-2">{t("profile.username")}</label>
+                <input
+                  id="sidebar-profile-username"
+                  type="text"
+                  placeholder={t("profile.usernamePlaceholder")}
+                  value={profileUsername}
+                  onChange={(e) => setProfileUsername(e.target.value)}
+                  className="w-full input-field border-[#E5E5E5]"
+                />
+              </div>
+              <div className="mb-3 mt-4">
+                <label htmlFor="sidebar-profile-bio" className="text-label mb-2 ml-2">{t("profile.bio")}</label>
+                <textarea
+                  id="sidebar-profile-bio"
+                  rows={3}
+                  placeholder={t("profile.bioPlaceholder")}
+                  value={profileBio}
+                  onChange={(e) => setProfileBio(e.target.value)}
+                  className="w-full textarea-field border-[#E5E5E5]"
+                />
+              </div>
+              {profileError && (
+                <p className="text-xs text-alert-red mb-3 text-center">{profileError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={profileSubmitting}
+                className="mt-3 h-10 w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {profileSubmitting ? t("common.auth.processing") : t("profile.saveChanges")}
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={() => setSidebarView("help")}
+              className="mt-3 w-full text-[13px] font-semibold text-text-secondary hover:text-primary"
+            >
+              ← {t("sidebar.needHelp")}
+            </button>
+          </div>
+        ) : sidebarView === "change-password" ? (
+          <div className="card-base border border-[#E5E5E5] p-5 mt-4 z-10">
+            <h3 className="text-heading-center">{t("profile.changePasswordTitle")}</h3>
+            <p className="text-description mt-2">{t("profile.changePasswordDescription")}</p>
+            <div className="mt-6 mb-6">
+              <Separator className="bg-[#E5E5E5]" />
+            </div>
+            <form onSubmit={handleChangePasswordSubmit} className="">
+              <div className="mb-3">
+                <label htmlFor="sidebar-current-password" className="text-label mb-2 ml-2">{t("profile.currentPassword")}</label>
+                <input
+                  id="sidebar-current-password"
+                  type="password"
+                  placeholder={t("profile.currentPasswordPlaceholder")}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full input-field border-[#E5E5E5]"
+                  required
+                />
+              </div>
+              <div className="mb-3 mt-4">
+                <label htmlFor="sidebar-new-password" className="text-label mb-2 ml-2">{t("profile.newPassword")}</label>
+                <input
+                  id="sidebar-new-password"
+                  type="password"
+                  placeholder={t("profile.newPasswordPlaceholder")}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full input-field border-[#E5E5E5]"
+                  required
+                />
+              </div>
+              <div className="mb-3 mt-4">
+                <label htmlFor="sidebar-confirm-password" className="text-label mb-2 ml-2">{t("profile.confirmPassword")}</label>
+                <input
+                  id="sidebar-confirm-password"
+                  type="password"
+                  placeholder={t("profile.confirmPasswordPlaceholder")}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full input-field border-[#E5E5E5]"
+                  required
+                />
+              </div>
+              {passwordError && (
+                <p className="text-xs text-alert-red mb-3 text-center">{passwordError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={passwordSubmitting}
+                className="mt-3 h-10 w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {passwordSubmitting ? t("common.auth.processing") : t("profile.updatePassword")}
+              </button>
+            </form>
+            <button
+              type="button"
+              onClick={() => setSidebarView("help")}
+              className="mt-3 w-full text-[13px] font-semibold text-text-secondary hover:text-primary"
+            >
+              ← {t("sidebar.needHelp")}
+            </button>
+          </div>
+        ) : (
         <div className="rounded-md bg-bg-light p-3 text-center sm:text-end px-4 sm:px-14 mt-4">
         <div className="flex items-end justify-end gap-2">
           <h3 className="text-[13px] font-bold text-text-primary text-end font-inter">{t('sidebar.needHelp')}</h3>
@@ -246,16 +474,48 @@ export default function RightSidebar() {
         </div>
         <Separator />
         <div className="mt-2 space-y-2 text-[13px] text-text-quaternary text-center sm:text-end">
-          {helpMenuItems.map((item, index, array) => (
-            <div key={`${item}-${index}`}>
+          {helpMenuItems.map((item, index, array) => {
+            const label = helpMenuTranslations[index] || item;
+            const isEditProfile = index === 1;
+            const isChangePassword = index === 2;
+            const isFileComplaint = index === 3;
+            const content = (
               <div className="pb-1 text-center sm:text-end text-text-primary font-normal font-inter">
-                {helpMenuTranslations[index] || item}
+                {isEditProfile ? (
+                  <button
+                    type="button"
+                    onClick={() => setSidebarView("edit-profile")}
+                    className="hover:text-primary hover:underline text-left"
+                  >
+                    {label}
+                  </button>
+                ) : isChangePassword ? (
+                  <button
+                    type="button"
+                    onClick={() => setSidebarView("change-password")}
+                    className="hover:text-primary hover:underline text-left"
+                  >
+                    {label}
+                  </button>
+                ) : isFileComplaint ? (
+                  <Link href="/complaints" className="hover:text-primary hover:underline">
+                    {label}
+                  </Link>
+                ) : (
+                  label
+                )}
               </div>
-              {index < array.length - 1 && <Separator />}
-            </div>
-          ))}
+            );
+            return (
+              <div key={`${item}-${index}`}>
+                {content}
+                {index < array.length - 1 && <Separator />}
+              </div>
+            );
+          })}
         </div>
       </div>
+        )
       ) : (
         <div>
           <div className="card-base border border-[#E5E5E5] p-5 mt-4 z-10">

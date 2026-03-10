@@ -105,6 +105,36 @@
     "accept": "Akzeptieren",
     "decline": "Ablehnen"
   },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "loading": "Wird geladen…",
+    "empty": "Noch keine Benachrichtigungen"
+  },
+  "profile": {
+    "editTitle": "Profil bearbeiten",
+    "editDescription": "Name, Benutzername und Bio aktualisieren.",
+    "name": "Anzeigename",
+    "namePlaceholder": "Ihr Name",
+    "username": "Benutzername",
+    "usernamePlaceholder": "Benutzername",
+    "bio": "Bio",
+    "bioPlaceholder": "Kurze Beschreibung",
+    "saveChanges": "Speichern",
+    "noChanges": "Keine Änderungen",
+    "updateSuccess": "Profil wurde aktualisiert",
+    "updateError": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+    "changePasswordTitle": "Passwort ändern",
+    "changePasswordDescription": "Aktuelles Passwort eingeben und neues wählen.",
+    "currentPassword": "Aktuelles Passwort",
+    "currentPasswordPlaceholder": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "newPasswordPlaceholder": "Neues Passwort (min. 8 Zeichen)",
+    "confirmPassword": "Neues Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+    "updatePassword": "Passwort aktualisieren",
+    "passwordChanged": "Passwort wurde geändert"
+  },
   "privacy": {
     "title": "Datenschutzerklärung",
     "lastUpdated": "Zuletzt aktualisiert: März 2026",
