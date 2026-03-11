@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { searchApi } from "@/lib/api";
+import { searchApi } from "@/features/search/api/client";
 import type { Review, UserProfile } from "@/lib/types";
 
 interface SearchResults {

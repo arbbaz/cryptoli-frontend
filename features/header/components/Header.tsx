@@ -1,8 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useAuth } from "@/app/contexts/AuthContext";
-import { trackAnalyticsEvent } from "@/app/components/AnalyticsTracker";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { trackAnalyticsEvent } from "@/shared/components/analytics/AnalyticsTracker";
 import HeaderSearch from "@/features/header/components/HeaderSearch";
 import NotificationsMenu from "@/features/header/components/NotificationsMenu";
 
@@ -24,10 +24,11 @@ export default function Header() {
               type="button"
               className="btn-primary px-5 py-3"
               onClick={() => trackAnalyticsEvent("signup_started")}
+              aria-label="Sign up for free"
             >
               {t("common.auth.signup")}
             </button>
-            <button type="button" className="btn-login-outline">
+            <button type="button" className="btn-login-outline" aria-label="Log in to your account">
               {t("common.auth.login")}
             </button>
           </div>

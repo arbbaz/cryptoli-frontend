@@ -1,8 +1,8 @@
 'use client';
 
 import { SessionProvider } from 'next-auth/react';
-import { ToastProvider } from '@/app/contexts/ToastContext';
-import { AuthProvider } from '@/app/contexts/AuthContext';
+import { ToastProvider } from '@/lib/contexts/ToastContext';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
 import type { UserProfile } from '@/lib/types';
 
 export interface InitialAuth {

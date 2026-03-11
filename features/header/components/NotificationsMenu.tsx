@@ -4,8 +4,8 @@ import { formatDistanceToNow } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { usePushSubscription } from "@/lib/hooks/usePushSubscription";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
+import { usePushSubscription } from "@/features/notifications/hooks/usePushSubscription";
 
 interface NotificationsMenuProps {
   displayName: string;

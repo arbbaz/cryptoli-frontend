@@ -1,17 +1,14 @@
 import { cookies } from "next/headers";
-import { getServerComplaints } from "@/lib/server-api";
 import { hasLikelyAuthCookie } from "@/lib/authCookies";
-import ComplaintsClient from "./ComplaintsClient";
+import { PAGE_SIZE } from "@/lib/constants";
+import { getServerComplaints } from "@/lib/server-api";
+import ComplaintsPageClient from "@/features/complaints/components/ComplaintsPageClient";
 
 export default async function ComplaintsPage() {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
   const authCookieHeader = hasLikelyAuthCookie(cookieHeader) ? cookieHeader : undefined;
-  const { complaints } = await getServerComplaints({
-    limit: 10,
-    page: 1,
-    cookieHeader: authCookieHeader,
-  });
+  const { complaints } = await getServerComplaints({ limit: PAGE_SIZE, page: 1, cookieHeader: authCookieHeader });
 
-  return <ComplaintsClient initialComplaints={complaints} />;
+  return <ComplaintsPageClient initialComplaints={complaints} />;
 }

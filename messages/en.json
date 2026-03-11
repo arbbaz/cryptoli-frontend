@@ -144,6 +144,13 @@
     "submitted": "Complaint submitted successfully",
     "signInToFile": "Sign in to file a complaint."
   },
+  "feed": {
+    "loading": "Loading…",
+    "loadMore": "Loading more…",
+    "noMore": "No more items",
+    "emptyReviews": "No reviews yet. Be the first to review!",
+    "emptyComplaints": "No complaints yet. Be the first to file one."
+  },
   "privacy": {
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: March 2026",

@@ -1,6 +1,6 @@
 import Credentials from 'next-auth/providers/credentials';
 import type { NextAuthOptions } from 'next-auth';
-import { getBackendUrl } from './lib/env';
+import { getBackendUrl } from '@/lib/env';
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,

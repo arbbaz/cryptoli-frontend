@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { notificationsApi } from "@/lib/api";
+import { notificationsApi } from "@/features/notifications/api/client";
 import { refreshSocketConnection, useSocket } from "@/lib/socket";
 import type { NotificationItem } from "@/lib/types";
 

@@ -1,5 +1,5 @@
-import NotificationsClient from "./NotificationsClient";
+import NotificationsPageClient from "@/features/notifications/components/NotificationsPageClient";
 
 export default function NotificationsPage() {
-  return <NotificationsClient />;
+  return <NotificationsPageClient />;
 }

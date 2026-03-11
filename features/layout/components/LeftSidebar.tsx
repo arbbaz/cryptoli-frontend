@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { alerts, sidebarMenuItems, languageItems } from "@/app/data/constants";
-import AlertCard from "@/app/components/AlertCard";
-import SidebarMenuItem from "@/app/components/SidebarMenuItem";
-import Separator from "@/app/components/Separator";
-import { trendingApi } from "@/lib/api";
+import { alerts, sidebarMenuItems, languageItems } from "@/shared/data/uiContent";
+import AlertCard from "@/shared/components/feedback/AlertCard";
+import SidebarMenuItem from "@/shared/components/layout/SidebarMenuItem";
+import Separator from "@/shared/components/ui/Separator";
+import { trendingApi } from "@/features/trending/api/client";
 import { truncateWithEllipsis } from "@/shared/utils/text";
 
 export default function LeftSidebar() {

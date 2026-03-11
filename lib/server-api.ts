@@ -1,6 +1,7 @@
-import { getBackendUrl } from "./env";
-import type { Review, UserProfile, Complaint } from "./types";
-import { hasLikelyAuthCookie } from "./authCookies";
+import { getBackendUrl } from "@/lib/env";
+import type { Review, UserProfile, Complaint } from "@/lib/types";
+import { hasLikelyAuthCookie } from "@/lib/authCookies";
+import { PAGE_SIZE } from "@/lib/constants";
 
 export interface ServerAuthResult {
   isLoggedIn: boolean;
@@ -50,7 +51,7 @@ export async function getServerReviews(options?: {
 }): Promise<ServerReviewsResult> {
   const base = getBackendUrl();
   if (!base) return { reviews: [] };
-  const limit = options?.limit ?? 20;
+  const limit = options?.limit ?? PAGE_SIZE;
   const hasAuthContext = hasLikelyAuthCookie(options?.cookieHeader);
   try {
     const url = `${base}/api/reviews?status=APPROVED&limit=${limit}`;
@@ -90,7 +91,7 @@ export async function getServerComplaints(options?: {
 }): Promise<ServerComplaintsResult> {
   const base = getBackendUrl();
   if (!base) return { complaints: [] };
-  const limit = options?.limit ?? 10;
+  const limit = options?.limit ?? PAGE_SIZE;
   const page = options?.page ?? 1;
   try {
     const url = `${base}/api/complaints?limit=${limit}&page=${page}`;
