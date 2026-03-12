@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Next 16 uses top-level `turbopack`, not `experimental.turbo`.
   turbopack: {
+    // Force Turbopack's workspace root to this app directory
+    root: __dirname,
     resolveAlias: {
       'next-intl/config': './i18n/request.ts'
     }
