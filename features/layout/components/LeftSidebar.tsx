@@ -2,28 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { sidebarMenuKeys, languageItems } from "@/shared/data/uiContent";
+import { alerts, sidebarMenuKeys, languageItems } from "@/shared/data/uiContent";
 import AlertCard from "@/shared/components/feedback/AlertCard";
 import SidebarMenuItem from "@/shared/components/layout/SidebarMenuItem";
 import Separator from "@/shared/components/ui/Separator";
 import { trendingApi } from "@/features/trending/api/client";
 import { truncateWithEllipsis } from "@/shared/utils/text";
 
-interface SidebarAlert {
-  type: "trending";
-  title: string;
-  content: string;
-  bgColor: string;
-  textColor: string;
-  height: string;
-  padding: string;
-  hasScore: boolean;
-}
+type SidebarAlert = (typeof alerts)[number];
 
 export default function LeftSidebar() {
   const t = useTranslations();
   const [activeItem, setActiveItem] = useState<string | null>(null);
-  const [sidebarAlerts, setSidebarAlerts] = useState<SidebarAlert[]>([]);
+  const [sidebarAlerts, setSidebarAlerts] = useState<SidebarAlert[]>(alerts);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,22 +33,27 @@ export default function LeftSidebar() {
         return;
       }
       if (response.error || !response.data?.trendingNow?.length) {
+        setSidebarAlerts((prev) =>
+          prev.map((item) =>
+            item.type === "trending"
+              ? { ...item, content: "" }
+              : item
+          )
+        );
         return;
       }
 
       const trendingItem = response.data.trendingNow[0];
-      setSidebarAlerts([
-        {
-          type: "trending",
-          title: t("alerts.trendingNow"),
-          content: truncateWithEllipsis(trendingItem.name, 42),
-          bgColor: "bg-primary",
-          textColor: "text-white",
-          height: "h-14",
-          padding: "px-3 mt-16 py-2",
-          hasScore: false,
-        },
-      ]);
+      setSidebarAlerts((prev) =>
+        prev.map((item) =>
+          item.type === "trending"
+            ? {
+                ...item,
+                content: truncateWithEllipsis(trendingItem.name, 42),
+              }
+            : item
+        )
+      );
     };
 
     if (typeof idleWindow.requestIdleCallback === "function") {
@@ -89,7 +85,7 @@ export default function LeftSidebar() {
   return (
     <aside className="sidebar-left sidebar-border-right">
       {sidebarAlerts.map((alert, index) => (
-        <AlertCard key={alert.type} alert={alert} index={index} />
+        <AlertCard key={`${alert.type}-${index}`} alert={alert} index={index} />
       ))}
       {sidebarMenuKeys.map((key) => (
         <SidebarMenuItem
