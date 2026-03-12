@@ -6,7 +6,8 @@ import { hasLikelyAuthCookie } from "@/lib/authCookies";
 import { PAGE_SIZE } from "@/lib/constants";
 import { getServerReviews } from "@/lib/server-api";
 import HomePageClient from "@/features/home/components/HomePageClient";
-import HomeReviewsSection from "@/features/reviews/components/HomeReviewsSection";
+import HomePageContent from "@/features/home/components/HomePageContent";
+import HomeReviewsList from "@/features/reviews/components/HomeReviewsList";
 
 export async function generateMetadata({
   params,
@@ -30,15 +31,17 @@ async function HomeReviewsAsync() {
   const cookieHeader = cookieStore.toString();
   const authCookieHeader = hasLikelyAuthCookie(cookieHeader) ? cookieHeader : undefined;
   const { reviews } = await getServerReviews({ limit: PAGE_SIZE, cookieHeader: authCookieHeader });
-  return <HomeReviewsSection initialReviews={reviews} />;
+  return <HomeReviewsList initialReviews={reviews} />;
 }
 
 export default function Home() {
   return (
     <HomePageClient>
-      <Suspense fallback={null}>
-        <HomeReviewsAsync />
-      </Suspense>
+      <HomePageContent>
+        <Suspense fallback={null}>
+          <HomeReviewsAsync />
+        </Suspense>
+      </HomePageContent>
     </HomePageClient>
   );
 }
