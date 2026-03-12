@@ -49,11 +49,13 @@ interface InitialAuth {
 
 export function AuthProvider({
   children,
+  initialAuth,
 }: {
   children: React.ReactNode;
+  initialAuth?: InitialAuth | null;
 }) {
   const { data: session, status } = useSession();
-  const [fallbackAuth, setFallbackAuth] = useState<InitialAuth | null>(null);
+  const [fallbackAuth, setFallbackAuth] = useState<InitialAuth | null>(initialAuth ?? null);
   const { showToast } = useToast();
 
   const refreshAuth = useCallback(async () => {
@@ -67,9 +69,9 @@ export function AuthProvider({
     }
   }, [showToast]);
 
-  // Fetch backend cookie auth once after NextAuth resolves unauthenticated.
+  // When no initialAuth is available, fetch backend cookie auth once after NextAuth resolves unauthenticated.
   useEffect(() => {
-    if (status === "unauthenticated" && fallbackAuth == null) {
+    if (initialAuth == null && status === "unauthenticated" && fallbackAuth == null) {
       void (async () => {
         const response = await authApi.me();
         setFallbackAuth({
@@ -81,7 +83,7 @@ export function AuthProvider({
         }
       })();
     }
-  }, [status, fallbackAuth, showToast]);
+  }, [initialAuth, status, fallbackAuth, showToast]);
 
   const resolvedAuth = useMemo(() => {
     if (status === "authenticated" && session?.user) {

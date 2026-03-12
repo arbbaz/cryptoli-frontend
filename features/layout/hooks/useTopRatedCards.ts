@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { topRatedCards } from "@/shared/data/uiContent";
 import { trendingApi } from "@/features/trending/api/client";
 import { truncateWithEllipsis } from "@/shared/utils/text";
 
@@ -22,7 +23,12 @@ export interface SidebarTopRatedCard {
 }
 
 export function useTopRatedCards() {
-  const [cards, setCards] = useState<SidebarTopRatedCard[]>([]);
+  const [cards, setCards] = useState<SidebarTopRatedCard[]>(() =>
+    topRatedCards.slice(0, 2).map((card) => ({
+      title: card.title,
+      product: { ...card.product, hasVerify: card.product.hasVerify },
+    })),
+  );
 
   useEffect(() => {
     let active = true;

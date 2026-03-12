@@ -4,8 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "@/lib/contexts/ToastContext";
 import { safeApiMessage } from "@/lib/apiErrors";
 import { PAGE_SIZE } from "@/lib/constants";
+import { useSocket } from "@/lib/socket";
 import { reviewsApi } from "@/features/reviews/api/client";
 import type { Review } from "@/lib/types";
+
+interface VoteUpdatePayload {
+  reviewId: string;
+  helpfulCount: number;
+  downVoteCount?: number;
+}
 
 /**
  * When initialReviewsFromServer is provided, we treat it as page 1 from SSR and do not refetch on mount.
@@ -17,6 +24,7 @@ export function useReviewsFeed(initialReviewsFromServer?: Review[]) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const pageRef = useRef(initialReviewsFromServer?.length ? 1 : 0);
+  const { socket } = useSocket();
   const { showToast } = useToast();
 
   const fetchReviews = useCallback(async () => {
@@ -87,6 +95,40 @@ export function useReviewsFeed(initialReviewsFromServer?: Review[]) {
       setHasMore(initialReviewsFromServer.length >= PAGE_SIZE);
     }
   }, [fetchReviews, initialReviewsFromServer]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleReviewCreated = (newReview: Review) => {
+      if (!newReview?.id) return;
+      setReviews((prevReviews) => {
+        if (prevReviews.some((review) => review.id === newReview.id)) return prevReviews;
+        return [newReview, ...prevReviews];
+      });
+    };
+
+    const handleVoteUpdated = (data: VoteUpdatePayload) => {
+      if (!data?.reviewId) return;
+      updateReviewVote(data.reviewId, data.helpfulCount, data.downVoteCount ?? 0);
+    };
+
+    const handleReviewUpdated = (updatedReview: Review) => {
+      if (!updatedReview?.id) return;
+      setReviews((prevReviews) =>
+        prevReviews.map((review) => (review.id === updatedReview.id ? { ...review, ...updatedReview } : review)),
+      );
+    };
+
+    socket.on("review:created", handleReviewCreated);
+    socket.on("review:vote:updated", handleVoteUpdated);
+    socket.on("review:updated", handleReviewUpdated);
+
+    return () => {
+      socket.off("review:created", handleReviewCreated);
+      socket.off("review:vote:updated", handleVoteUpdated);
+      socket.off("review:updated", handleReviewUpdated);
+    };
+  }, [socket, updateReviewVote]);
 
   return { reviews, setReviews, loading, loadingMore, hasMore, loadMore, fetchReviews, updateReviewVote };
 }

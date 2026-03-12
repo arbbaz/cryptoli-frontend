@@ -1,5 +1,7 @@
 import Image from "next/image";
+import { LuDot } from "react-icons/lu";
 import { useTranslations } from "next-intl";
+import { companyProfile } from "@/shared/data/uiContent";
 
 interface CompanyHeroProps {
   isLoggedIn: boolean;
@@ -16,11 +18,11 @@ export default function CompanyHero({ isLoggedIn }: CompanyHeroProps) {
             <div className="flex gap-3">
               <Image src="/logo.png" alt="company-logo" width={64} height={64} className="flex-shrink-0" />
               <div>
-                <h1 className="text-xl font-semibold leading-tight text-text-heading">
-                  {t("companyProfile.heading")}
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-text-primary">
-                  {t("companyProfile.description")}
+                <h1 className="text-sm font-semibold text-text-heading">{companyProfile.name}</h1>
+                <p className="text-xl font-bold text-primary-lighter">{companyProfile.score}</p>
+                <p className="text-xs text-text-primary">
+                  ({companyProfile.reviews}) {t("companyProfile.reviews")} <LuDot className="inline-block text-sm" />
+                  ({companyProfile.companies}) {t("companyProfile.companies")}
                 </p>
               </div>
             </div>
@@ -31,6 +33,7 @@ export default function CompanyHero({ isLoggedIn }: CompanyHeroProps) {
               </button>
             </div>
           </div>
+          <p className="mt-3 text-body-sm leading-[22px] tracking-normal">{companyProfile.description}</p>
         </>
       ) : (
         <div>
@@ -46,7 +49,7 @@ export default function CompanyHero({ isLoggedIn }: CompanyHeroProps) {
       <div className="mt-3 flex items-center justify-between gap-3 rounded-md bg-primary-bg px-4 py-3">
         {isLoggedIn ? (
           <div className="flex min-w-0 flex-1 items-center break-words text-sm font-light leading-[22px] text-text-primary">
-            {t("companyProfile.description")}
+            {companyProfile.notification}
           </div>
         ) : (
           <div className="flex min-w-0 flex-1 items-center gap-6 break-words text-sm font-light leading-[22px] text-text-primary">
