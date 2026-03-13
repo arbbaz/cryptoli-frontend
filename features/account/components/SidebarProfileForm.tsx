@@ -10,14 +10,13 @@ interface SidebarProfileFormProps {
 export default function SidebarProfileForm({ onBack }: SidebarProfileFormProps) {
   const {
     t,
-    profileName,
-    setProfileName,
     profileUsername,
     setProfileUsername,
     profileBio,
     setProfileBio,
     profileSubmitting,
     profileError,
+    usernameCheckStatus,
     submitProfile,
   } = useSidebarProfileSettings(true);
 
@@ -30,19 +29,6 @@ export default function SidebarProfileForm({ onBack }: SidebarProfileFormProps) 
       </div>
       <form onSubmit={(event) => void submitProfile(event, onBack)}>
         <div className="mb-3">
-          <label htmlFor="sidebar-profile-name" className="text-label mb-2 ml-2">
-            {t("profile.name")}
-          </label>
-          <input
-            id="sidebar-profile-name"
-            type="text"
-            placeholder={t("profile.namePlaceholder")}
-            value={profileName}
-            onChange={(event) => setProfileName(event.target.value)}
-            className="input-field w-full border-[#E5E5E5]"
-          />
-        </div>
-        <div className="mb-3 mt-4">
           <label htmlFor="sidebar-profile-username" className="text-label mb-2 ml-2">
             {t("profile.username")}
           </label>
@@ -52,8 +38,26 @@ export default function SidebarProfileForm({ onBack }: SidebarProfileFormProps) 
             placeholder={t("profile.usernamePlaceholder")}
             value={profileUsername}
             onChange={(event) => setProfileUsername(event.target.value)}
-            className="input-field w-full border-[#E5E5E5]"
+            className={`input-field w-full border-[#E5E5E5] ${
+              usernameCheckStatus === "taken"
+                ? "border-alert-red"
+                : usernameCheckStatus === "available"
+                  ? "border-green-500"
+                  : ""
+            }`}
           />
+          {usernameCheckStatus === "checking" && (
+            <p className="mt-1.5 ml-2 text-xs text-text-secondary">{t("profile.usernameChecking")}</p>
+          )}
+          {usernameCheckStatus === "available" && (
+            <p className="mt-1.5 ml-2 text-xs text-green-600">{t("profile.usernameAvailable")}</p>
+          )}
+          {usernameCheckStatus === "taken" && (
+            <p className="mt-1.5 ml-2 text-xs text-alert-red">{t("profile.usernameTaken")}</p>
+          )}
+          {usernameCheckStatus === "invalid" && profileUsername.trim().length > 0 && (
+            <p className="mt-1.5 ml-2 text-xs text-alert-red">{t("profile.usernameInvalid")}</p>
+          )}
         </div>
         <div className="mb-3 mt-4">
           <label htmlFor="sidebar-profile-bio" className="text-label mb-2 ml-2">

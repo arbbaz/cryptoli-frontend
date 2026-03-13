@@ -53,7 +53,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: payload.user.id,
           email: payload.user.email,
-          name: payload.user.name ?? payload.user.username,
+          name: payload.user.username,
           username: payload.user.username,
           role: payload.user.role,
           avatar: payload.user.avatar ?? null,

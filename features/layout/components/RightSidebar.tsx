@@ -30,7 +30,7 @@ export default function RightSidebar() {
           />
         )
       ) : (
-        <SidebarAuthCard />
+        <SidebarAuthCard onSignupSuccess={() => setSidebarView("edit-profile")} />
       )}
 
       {topRatedCards.map((card, index) => (

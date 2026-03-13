@@ -14,7 +14,6 @@ function isAuthFailureMessage(message: string): boolean {
 function sessionUserToProfile(sessionUser: {
   id?: string;
   email?: string | null;
-  name?: string | null;
   username?: string;
   avatar?: string | null;
   verified?: boolean;
@@ -26,7 +25,6 @@ function sessionUserToProfile(sessionUser: {
     id: sessionUser.id,
     email: sessionUser.email ?? undefined,
     username: sessionUser.username,
-    name: sessionUser.name ?? undefined,
     avatar: sessionUser.avatar ?? undefined,
     verified: sessionUser.verified ?? false,
     bio: sessionUser.bio ?? undefined,

@@ -4,7 +4,11 @@ import { FcGoogle } from "react-icons/fc";
 import Separator from "@/shared/components/ui/Separator";
 import { useSidebarAuthForm } from "@/features/account/hooks/useSidebarAuthForm";
 
-export default function SidebarAuthCard() {
+interface SidebarAuthCardProps {
+  onSignupSuccess?: () => void;
+}
+
+export default function SidebarAuthCard({ onSignupSuccess }: SidebarAuthCardProps) {
   const {
     t,
     email,
@@ -16,7 +20,7 @@ export default function SidebarAuthCard() {
     error,
     handleSubmit,
     toggleMode,
-  } = useSidebarAuthForm();
+  } = useSidebarAuthForm({ onSignupSuccess });
 
   return (
     <div>

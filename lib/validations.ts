@@ -17,7 +17,6 @@ export const registerSchema = z.object({
       "Username can only contain letters, numbers, and underscores"
     ),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  name: z.string().optional(),
 });
 
 export const createReviewSchema = z.object({
@@ -48,7 +47,6 @@ export const createComplaintSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  name: z.string().max(100).optional(),
   username: z
     .string()
     .min(3, "Username must be at least 3 characters")

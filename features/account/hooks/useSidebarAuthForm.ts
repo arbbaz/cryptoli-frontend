@@ -9,7 +9,22 @@ import { trackAnalyticsEvent } from "@/shared/components/analytics/AnalyticsTrac
 import { authApi } from "@/features/auth/api/client";
 import { loginSchema, registerSchema } from "@/lib/validations";
 
-export function useSidebarAuthForm() {
+/**
+ * Humanized placeholder username from email (e.g. arbaz@gmail.com → arbaz21).
+ * Base from email (letters/numbers/underscore, max 20 chars) + small number or _nn for uniqueness.
+ */
+function generatePlaceholderUsername(email: string): string {
+  const base = (email.split("@")[0] || "user")
+    .trim()
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 20);
+  const name = base.length >= 2 ? base : "user";
+  const num = 10 + (Date.now() % 90) + Math.floor(Math.random() * 10);
+  return `${name}${num}`;
+}
+
+export function useSidebarAuthForm(options?: { onSignupSuccess?: () => void }) {
   const t = useTranslations();
   const { showToast } = useToast();
   const { refreshAuth } = useAuth();
@@ -18,6 +33,7 @@ export function useSidebarAuthForm() {
   const [isSignup, setIsSignup] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const onSignupSuccess = options?.onSignupSuccess;
 
   const completeAuthentication = (message: string) => {
     showToast(message, "success");
@@ -47,12 +63,7 @@ export function useSidebarAuthForm() {
 
     try {
       if (isSignup) {
-        const usernameBase = (email.split("@")[0] || "user").trim();
-        const normalizedUsername = usernameBase
-          .replace(/[^a-zA-Z0-9_]/g, "_")
-          .replace(/^_+|_+$/g, "");
-        const username = normalizedUsername || `user_${Date.now()}`;
-
+        const username = generatePlaceholderUsername(email);
         const parsed = registerSchema.safeParse({ email, username, password });
         if (!parsed.success) {
           const message = parsed.error.issues[0]?.message ?? "Validation failed";
@@ -71,6 +82,7 @@ export function useSidebarAuthForm() {
         if (await signInWithCredentials()) {
           trackAnalyticsEvent("signup_completed");
           completeAuthentication("Account created successfully!");
+          onSignupSuccess?.();
         }
 
         return;

@@ -56,7 +56,6 @@ export default function HeaderSearch() {
                           onClick={clearSearch}
                         >
                           <span className="font-medium">{user.username}</span>
-                          {user.name && <span className="ml-1 text-text-secondary">({user.name})</span>}
                         </Link>
                       </li>
                     ))}

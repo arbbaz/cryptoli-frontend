@@ -9,7 +9,7 @@ import NotificationsMenu from "@/features/header/components/NotificationsMenu";
 export default function Header() {
   const t = useTranslations();
   const { isLoggedIn, user } = useAuth();
-  const displayName = user?.name?.trim() || user?.username || t("common.greeting.companyname");
+  const displayName = user?.username || t("common.greeting.companyname");
 
   return (
     <header className="w-full overflow-visible border-b border-border">
