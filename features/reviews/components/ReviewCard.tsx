@@ -1,8 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { LuDot } from "react-icons/lu";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { usersApi } from "@/features/users/api/client";
 import Separator from "@/shared/components/ui/Separator";
 import HighlightFirstWord from "@/shared/components/ui/HighlightFirstWord";
 import VoteRail from "@/shared/components/ui/VoteRail";
@@ -47,6 +52,40 @@ export default function ReviewCard({ review, onVoteUpdate }: ReviewCardProps) {
   } = useComments({ targetKey: "reviewId", targetId: review.id, initialCount: review._count?.comments ?? 0 });
 
   const authorName = review.author?.username || "Anonymous";
+  const pathname = usePathname();
+  const locale = pathname.split("/")[1] || "en";
+  const authorProfileHref =
+    review.author?.username ? `/${locale}/users/${encodeURIComponent(review.author.username)}` : undefined;
+
+  const { user: currentUser } = useAuth();
+  const isOwnReview = currentUser?.username && review.author?.username === currentUser.username;
+  const canFollow = Boolean(currentUser && review.author?.username && !isOwnReview);
+  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  useEffect(() => {
+    if (!canFollow || !review.author?.username) return;
+    usersApi.getFollowStatus(review.author.username).then((res) => {
+      if (!res.error && res.data) setIsFollowingAuthor(res.data.following);
+    });
+  }, [canFollow, review.author?.username]);
+
+  const handleFollowClick = () => {
+    if (!review.author?.username || followLoading) return;
+    setFollowLoading(true);
+    if (isFollowingAuthor) {
+      usersApi.unfollow(review.author.username).then((res) => {
+        if (!res.error) setIsFollowingAuthor(false);
+        setFollowLoading(false);
+      });
+    } else {
+      usersApi.follow(review.author.username).then((res) => {
+        if (!res.error) setIsFollowingAuthor(true);
+        setFollowLoading(false);
+      });
+    }
+  };
+
   const timeAgoLabel = formatReviewTimeAgo(review.createdAt, t("common.time.hoursAgo"));
   const commentPlaceholder = translateWithFallback(t, "common.comment.writeComment", "Write a comment...");
   const postCommentLabel = translateWithFallback(t, "common.comment.post", "Post Comment");
@@ -72,10 +111,30 @@ export default function ReviewCard({ review, onVoteUpdate }: ReviewCardProps) {
             <div className="avatar">
               {review.author?.avatar ? <Image src={review.author.avatar} alt={authorName} width={40} height={40} className="h-full w-full object-cover" /> : null}
             </div>
-            <div className="card-meta-text">
-              <p className="author-name">
-                {authorName}
+            <div className="card-meta-text flex-1 min-w-0">
+              <p className="author-name flex flex-wrap items-center gap-2">
+                {authorProfileHref ? (
+                  <Link href={authorProfileHref} className="hover:text-primary transition-colors">
+                    {authorName}
+                  </Link>
+                ) : (
+                  authorName
+                )}
                 {review.author?.verified && <span className="ml-1">✓</span>}
+                {canFollow && (
+                  <button
+                    type="button"
+                    onClick={handleFollowClick}
+                    disabled={followLoading}
+                    className={`ml-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition disabled:opacity-50 ${
+                      isFollowingAuthor
+                        ? "border border-[#E5E5E5] bg-white text-text-secondary hover:border-primary hover:text-primary"
+                        : "btn-primary"
+                    }`}
+                  >
+                    {followLoading ? "…" : isFollowingAuthor ? "Following" : "Follow"}
+                  </button>
+                )}
               </p>
               <p className="meta-line">
                 <span className="meta-muted">{timeAgoLabel}</span>
