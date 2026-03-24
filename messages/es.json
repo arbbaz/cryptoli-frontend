@@ -125,6 +125,38 @@
     "updatePassword": "Actualizar contraseña",
     "passwordChanged": "Contraseña actualizada",
     "passwordChangedAllSessions": "Contraseña actualizada correctamente. Se ha cerrado la sesión en todos los demás dispositivos."
+  },
+  "privacy": {
+    "title": "Política de privacidad",
+    "lastUpdated": "Última actualización: marzo 2026",
+    "analyticsHeading": "Análisis y datos de uso",
+    "analyticsBody": "Cuando acepta las analíticas, recopilamos datos de uso para mejorar el servicio. Esto incluye:",
+    "analyticsIp": "Dirección IP (para inferir país/región, luego almacenada con hash)",
+    "analyticsLocation": "Ubicación aproximada (país/región derivada de la IP)",
+    "analyticsDevice": "Tipo de dispositivo (p. ej. móvil, tableta, escritorio)",
+    "analyticsBrowser": "Navegador y sistema operativo",
+    "analyticsVisitTime": "Duración de la visita y páginas visitadas",
+    "analyticsTimezone": "Su zona horaria (p. ej. America/Mexico_City, detectada desde su navegador)",
+    "analyticsSessionId": "Un identificador de sesión aleatorio almacenado en el localStorage de su navegador",
+    "analyticsReferrer": "Fuente de referencia (la página que le enlazó aquí)",
+    "analyticsUtm": "Parámetros de campaña UTM (fuente, medio, campaña) de enlaces de marketing",
+    "analyticsFunnel": "Eventos de embudo (p. ej. registro iniciado, completado, likes)",
+    "analyticsUa": "Cadena user-agent del navegador",
+    "serverSideHeading": "Registro de actividad del servidor",
+    "serverSideBody": "Independientemente de su consentimiento de análisis, registramos ciertas acciones relacionadas con la cuenta bajo una base de interés legítimo para mantener la integridad de la plataforma y prevenir abusos. Estos registros incluyen:",
+    "serverSideLogin": "Inicio de sesión, registro, cierre de sesión y cambios de contraseña",
+    "serverSideReview": "Creación de reseñas, comentarios y quejas",
+    "serverSideVote": "Acciones de votación y marcado como útil",
+    "serverSideFollow": "Seguir y dejar de seguir usuarios",
+    "serverSideSearch": "Consultas de búsqueda (texto de consulta y cantidad de resultados)",
+    "serverSideNote": "Estos registros contienen su dirección IP (con hash), país, tipo de dispositivo y navegador, pero no el historial de navegación ni la duración de la sesión.",
+    "cookiesHeading": "Cookies",
+    "cookiesBody": "Usamos una cookie analytics_consent_v2 para recordar su preferencia de análisis. No se ejecuta ningún seguimiento hasta que acepte. Al iniciar sesión, se envía una cookie de autenticación con las solicitudes de API para identificar su sesión.",
+    "storageHeading": "Almacenamiento de datos",
+    "storageBody": "Los análisis en tiempo real se almacenan en memoria (Redis) con una ventana de 32 días. Los eventos también se escriben en una base de datos permanente para agregación a largo plazo. Los identificadores personales (direcciones IP) se almacenan con hash y las asociaciones de usuario se eliminan automáticamente después de 90 días. Las estadísticas agregadas se utilizan para mejorar el producto y no se venden a terceros.",
+    "choicesHeading": "Sus opciones",
+    "choicesBody": "Puede aceptar o rechazar las analíticas cuando se le solicite. Puede cambiar su elección en cualquier momento borrando sus cookies. El registro de actividad del servidor no puede desactivarse ya que opera bajo una base de interés legítimo para la seguridad de la plataforma.",
+    "backHome": "Volver al inicio"
   }
 }
 

@@ -36,7 +36,26 @@ export default async function PrivacyPage() {
           <li>{t("analyticsDevice")}</li>
           <li>{t("analyticsBrowser")}</li>
           <li>{t("analyticsVisitTime")}</li>
+          <li>{t("analyticsTimezone")}</li>
+          <li>{t("analyticsSessionId")}</li>
+          <li>{t("analyticsReferrer")}</li>
+          <li>{t("analyticsUtm")}</li>
+          <li>{t("analyticsFunnel")}</li>
+          <li>{t("analyticsUa")}</li>
         </ul>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="text-lg font-semibold text-text-heading">{t("serverSideHeading")}</h2>
+        <p className="mt-2 text-body-sm text-text-primary">{t("serverSideBody")}</p>
+        <ul className="mt-2 list-inside list-disc text-body-sm text-text-primary">
+          <li>{t("serverSideLogin")}</li>
+          <li>{t("serverSideReview")}</li>
+          <li>{t("serverSideVote")}</li>
+          <li>{t("serverSideFollow")}</li>
+          <li>{t("serverSideSearch")}</li>
+        </ul>
+        <p className="mt-2 text-body-sm text-text-secondary">{t("serverSideNote")}</p>
       </section>
 
       <section className="mt-6">

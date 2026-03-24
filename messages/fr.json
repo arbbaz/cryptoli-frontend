@@ -138,6 +138,38 @@
     "updatePassword": "Mettre à jour le mot de passe",
     "passwordChanged": "Mot de passe modifié",
     "passwordChangedAllSessions": "Mot de passe modifié avec succès. Vous avez été déconnecté de tous les autres appareils."
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "lastUpdated": "Dernière mise à jour : mars 2026",
+    "analyticsHeading": "Analyses et données d'utilisation",
+    "analyticsBody": "Lorsque vous acceptez les analyses, nous collectons des données d'utilisation pour améliorer le service. Cela inclut :",
+    "analyticsIp": "Adresse IP (pour déduire le pays/région, puis hachée pour le stockage)",
+    "analyticsLocation": "Localisation approximative (pays/région déduits de l'IP)",
+    "analyticsDevice": "Type d'appareil (ex. mobile, tablette, ordinateur)",
+    "analyticsBrowser": "Navigateur et système d'exploitation",
+    "analyticsVisitTime": "Durée de visite et pages consultées",
+    "analyticsTimezone": "Votre fuseau horaire (ex. Europe/Paris, détecté depuis votre navigateur)",
+    "analyticsSessionId": "Un identifiant de session aléatoire stocké dans le localStorage de votre navigateur",
+    "analyticsReferrer": "Source de référence (la page qui vous a redirigé ici)",
+    "analyticsUtm": "Paramètres de campagne UTM (source, medium, campagne) des liens marketing",
+    "analyticsFunnel": "Événements d'entonnoir (ex. inscription commencée, terminée, likes)",
+    "analyticsUa": "Chaîne user-agent brute du navigateur",
+    "serverSideHeading": "Journalisation d'activité côté serveur",
+    "serverSideBody": "Indépendamment de votre consentement aux analyses, nous enregistrons certaines actions liées au compte sur la base d'un intérêt légitime pour maintenir l'intégrité de la plateforme et prévenir les abus. Ces journaux incluent :",
+    "serverSideLogin": "Connexion, inscription, déconnexion et changements de mot de passe",
+    "serverSideReview": "Création d'avis, commentaires et plaintes",
+    "serverSideVote": "Actions de vote et de marquage comme utile",
+    "serverSideFollow": "Suivre et ne plus suivre des utilisateurs",
+    "serverSideSearch": "Requêtes de recherche (texte de recherche et nombre de résultats)",
+    "serverSideNote": "Ces journaux contiennent votre adresse IP (hachée), pays, type d'appareil et navigateur — mais pas d'historique de navigation ni de durée de session.",
+    "cookiesHeading": "Cookies",
+    "cookiesBody": "Nous utilisons un cookie analytics_consent_v2 pour mémoriser votre préférence d'analyse. Aucun suivi n'est effectué tant que vous n'acceptez pas. Lors de la connexion, un cookie d'authentification est envoyé avec les requêtes API pour identifier votre session.",
+    "storageHeading": "Stockage des données",
+    "storageBody": "Les analyses en temps réel sont stockées en mémoire (Redis) avec une fenêtre glissante de 32 jours. Les événements sont également écrits dans une base de données permanente pour l'agrégation à long terme. Les identifiants personnels (adresses IP) sont hachés avant le stockage et les associations d'utilisateurs sont automatiquement supprimées après 90 jours. Les statistiques agrégées sont utilisées pour l'amélioration du produit et ne sont pas vendues à des tiers.",
+    "choicesHeading": "Vos choix",
+    "choicesBody": "Vous pouvez accepter ou refuser les analyses lorsque vous y êtes invité. Vous pouvez modifier votre choix à tout moment en effaçant vos cookies. La journalisation d'activité côté serveur ne peut pas être désactivée car elle fonctionne sur la base d'un intérêt légitime pour la sécurité de la plateforme.",
+    "backHome": "Retour à l'accueil"
   }
 }
 
