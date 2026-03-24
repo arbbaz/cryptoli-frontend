@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 
-const COOKIE_NAME = "analytics_consent";
+const COOKIE_NAME = "analytics_consent_v2";
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year
 
 export function getAnalyticsConsent(): boolean | null {
