@@ -1,5 +1,5 @@
 import { render, act } from "@testing-library/react";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach, type MockInstance } from "vitest";
 
 const mockGetAnalyticsConsent = vi.fn();
 const mockGetApiBaseUrl = vi.fn();
@@ -38,7 +38,7 @@ function createStorageMock(): Storage {
 }
 
 describe("AnalyticsTracker", () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: MockInstance<typeof fetch>;
   let origLocalStorage: Storage;
   let origSessionStorage: Storage;
 
