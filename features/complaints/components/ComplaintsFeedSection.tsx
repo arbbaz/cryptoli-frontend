@@ -14,11 +14,12 @@ interface ComplaintsFeedSectionProps {
   initialComplaints: Complaint[];
 }
 
-export default function ComplaintsFeedSection({ initialComplaints }: ComplaintsFeedSectionProps) {
+export default function ComplaintsFeedSection({ initialComplaints: _initialComplaints }: ComplaintsFeedSectionProps) {
+  void _initialComplaints;
   const t = useTranslations("feed");
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { complaints, setComplaints, loading, loadingMore, hasMore, loadMore, fetchComplaints, errorMessage } =
-    useComplaintsFeed(initialComplaints);
+    useComplaintsFeed();
 
   useInfiniteScroll(sentinelRef, { hasMore, loading, loadingMore, loadMore });
 

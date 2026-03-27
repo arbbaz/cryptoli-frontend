@@ -1,74 +1,91 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/lib/contexts/ToastContext";
 import { safeApiMessage } from "@/lib/apiErrors";
 import { PAGE_SIZE } from "@/lib/constants";
 import { complaintsApi } from "@/features/complaints/api/client";
+import { flattenInfiniteFeedItems, updateInfiniteFeedItems } from "@/lib/infiniteFeedCache";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Complaint } from "@/lib/types";
 
-export function useComplaintsFeed(initialComplaints?: Complaint[]) {
-  const [complaints, setComplaints] = useState<Complaint[]>(initialComplaints ?? []);
-  const [loading, setLoading] = useState(initialComplaints == null);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const pageRef = useRef(initialComplaints?.length ? 1 : 0);
+const complaintsFeedQueryKey = queryKeys.complaintsFeed();
+
+export function useComplaintsFeed() {
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
-  const fetchComplaints = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage(null);
-    pageRef.current = 0;
-    try {
-      const response = await complaintsApi.list({ limit: PAGE_SIZE, page: 1 });
-      if (response.data?.complaints) {
-        setComplaints(response.data.complaints);
-        const pag = response.data.pagination;
-        setHasMore(pag ? pag.page < pag.totalPages : false);
-        pageRef.current = 1;
-      } else if (response.error) {
-        const message = safeApiMessage(response.error);
-        setErrorMessage(message);
-        showToast(message, "error");
+  const complaintsQuery = useInfiniteQuery({
+    queryKey: complaintsFeedQueryKey,
+    queryFn: async ({ pageParam }) => {
+      const response = await complaintsApi.list({
+        limit: PAGE_SIZE,
+        page: pageParam,
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
       }
-    } finally {
-      setLoading(false);
+
+      return {
+        complaints: response.data?.complaints ?? [],
+        pagination: response.data?.pagination ?? response.pagination ?? {
+          page: pageParam,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.pagination;
+      if (!pagination || pagination.page >= pagination.totalPages) return undefined;
+      return pagination.page + 1;
+    },
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const complaints = flattenInfiniteFeedItems(complaintsQuery.data, "complaints");
+  const loading = complaintsQuery.isLoading || (complaintsQuery.isFetching && !complaintsQuery.data);
+  const loadingMore = complaintsQuery.isFetchingNextPage;
+  const hasMore = complaintsQuery.hasNextPage ?? false;
+  const errorMessage = complaintsQuery.error instanceof Error
+    ? safeApiMessage(complaintsQuery.error.message)
+    : null;
+
+  const fetchComplaints = useCallback(async () => {
+    const result = await complaintsQuery.refetch();
+    if (result.error) {
+      const message = safeApiMessage(result.error.message);
+      showToast(message, "error");
     }
-  }, [showToast]);
+  }, [complaintsQuery, showToast]);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    const nextPage = pageRef.current + 1;
-    setLoadingMore(true);
-    try {
-      const response = await complaintsApi.list({ limit: PAGE_SIZE, page: nextPage });
-      if (response.data?.complaints?.length) {
-        const data = response.data;
-        setComplaints((prev) => [...prev, ...data.complaints]);
-        const pag = data.pagination;
-        setHasMore(pag ? pag.page < pag.totalPages : false);
-        pageRef.current = nextPage;
-        setErrorMessage(null);
-      } else {
-        setHasMore(false);
-      }
-      if (response.error) {
-        showToast(safeApiMessage(response.error), "error");
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [hasMore, loadingMore, showToast]);
+    if (!complaintsQuery.hasNextPage || complaintsQuery.isFetchingNextPage) return;
 
-  useEffect(() => {
-    if (initialComplaints == null) {
-      void fetchComplaints();
-    } else {
-      pageRef.current = 1;
-      setHasMore(initialComplaints.length >= PAGE_SIZE);
+    const result = await complaintsQuery.fetchNextPage();
+    if (result.error) {
+      showToast(safeApiMessage(result.error.message), "error");
     }
-  }, [fetchComplaints, initialComplaints]);
+  }, [complaintsQuery, showToast]);
+
+  const setComplaints = useCallback(
+    (updater: React.SetStateAction<Complaint[]>) => {
+      updateInfiniteFeedItems<Complaint, "complaints">(queryClient, {
+        queryKey: complaintsFeedQueryKey,
+        itemsKey: "complaints",
+        updater: (currentComplaints) =>
+          typeof updater === "function"
+            ? (updater as (prev: Complaint[]) => Complaint[])(currentComplaints)
+            : updater,
+      });
+    },
+    [queryClient],
+  );
 
   return {
     complaints,

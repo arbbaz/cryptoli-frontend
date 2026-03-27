@@ -1,97 +1,117 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/lib/contexts/ToastContext";
 import { safeApiMessage } from "@/lib/apiErrors";
 import { PAGE_SIZE } from "@/lib/constants";
 import { reviewsApi } from "@/features/reviews/api/client";
+import { flattenInfiniteFeedItems, updateInfiniteFeedItems } from "@/lib/infiniteFeedCache";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Review } from "@/lib/types";
 
-/**
- * When initialReviewsFromServer is provided, we treat it as page 1 from SSR and do not refetch on mount.
- * When it is undefined, we fetch the first page on mount.
- */
-export function useReviewsFeed(initialReviewsFromServer?: Review[]) {
-  const [reviews, setReviews] = useState<Review[]>(initialReviewsFromServer ?? []);
-  const [loading, setLoading] = useState(initialReviewsFromServer == null);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const pageRef = useRef(initialReviewsFromServer?.length ? 1 : 0);
+const reviewsFeedQueryKey = queryKeys.reviewsFeed({ status: "APPROVED" });
+
+export function useReviewsFeed() {
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
 
-  const fetchReviews = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage(null);
-    pageRef.current = 0;
-    try {
-      const response = await reviewsApi.list({ status: "APPROVED", limit: PAGE_SIZE, page: 1 });
-      if (response.data?.reviews) {
-        setReviews(response.data.reviews);
-        const pag = response.data.pagination;
-        setHasMore(pag ? pag.page < pag.totalPages : false);
-        pageRef.current = 1;
-      } else if (response.error) {
-        const message = safeApiMessage(response.error);
-        setErrorMessage(message);
-        showToast(message, "error");
+  const reviewsQuery = useInfiniteQuery({
+    queryKey: reviewsFeedQueryKey,
+    queryFn: async ({ pageParam }) => {
+      const response = await reviewsApi.list({
+        status: "APPROVED",
+        limit: PAGE_SIZE,
+        page: pageParam,
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
       }
-    } finally {
-      setLoading(false);
+
+      return {
+        reviews: response.data?.reviews ?? [],
+        pagination: response.data?.pagination ?? response.pagination ?? {
+          page: pageParam,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.pagination;
+      if (!pagination || pagination.page >= pagination.totalPages) return undefined;
+      return pagination.page + 1;
+    },
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const reviews = flattenInfiniteFeedItems(reviewsQuery.data, "reviews");
+  const loading = reviewsQuery.isLoading || (reviewsQuery.isFetching && !reviewsQuery.data);
+  const loadingMore = reviewsQuery.isFetchingNextPage;
+  const hasMore = reviewsQuery.hasNextPage ?? false;
+  const errorMessage = reviewsQuery.error instanceof Error
+    ? safeApiMessage(reviewsQuery.error.message)
+    : null;
+
+  const fetchReviews = useCallback(async () => {
+    const result = await reviewsQuery.refetch();
+    if (result.error) {
+      const message = safeApiMessage(result.error.message);
+      showToast(message, "error");
+      return;
     }
-  }, [showToast]);
+  }, [reviewsQuery, showToast]);
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    const nextPage = pageRef.current + 1;
-    setLoadingMore(true);
-    try {
-      const response = await reviewsApi.list({ status: "APPROVED", limit: PAGE_SIZE, page: nextPage });
-      if (response.data?.reviews?.length) {
-        const data = response.data;
-        setReviews((prev) => [...prev, ...data.reviews]);
-        const pag = data.pagination;
-        setHasMore(pag ? pag.page < pag.totalPages : false);
-        pageRef.current = nextPage;
-        setErrorMessage(null);
-      } else {
-        setHasMore(false);
-      }
-      if (response.error) {
-        showToast(safeApiMessage(response.error), "error");
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [hasMore, loadingMore, showToast]);
+    if (!reviewsQuery.hasNextPage || reviewsQuery.isFetchingNextPage) return;
 
-  const updateReviewVote = useCallback((reviewId: string, helpfulCount: number, downVoteCount: number) => {
-    setReviews((prevReviews) =>
-      prevReviews.map((review) =>
-        review.id === reviewId
-          ? {
-              ...review,
-              helpfulCount,
-              downVoteCount,
-              _count: {
-                ...review._count,
-                helpfulVotes: helpfulCount,
-              },
-            }
-          : review,
-      ),
-    );
-  }, []);
-
-  // When initialReviewsFromServer is provided, treat as SSR page 1 and do not refetch; otherwise fetch on mount.
-  useEffect(() => {
-    if (initialReviewsFromServer == null) {
-      void fetchReviews();
-    } else {
-      pageRef.current = 1;
-      setHasMore(initialReviewsFromServer.length >= PAGE_SIZE);
+    const result = await reviewsQuery.fetchNextPage();
+    if (result.error) {
+      showToast(safeApiMessage(result.error.message), "error");
     }
-  }, [fetchReviews, initialReviewsFromServer]);
+  }, [reviewsQuery, showToast]);
+
+  const setReviews = useCallback(
+    (updater: React.SetStateAction<Review[]>) => {
+      updateInfiniteFeedItems<Review, "reviews">(queryClient, {
+        queryKey: reviewsFeedQueryKey,
+        itemsKey: "reviews",
+        updater: (currentReviews) =>
+          typeof updater === "function"
+            ? (updater as (prev: Review[]) => Review[])(currentReviews)
+            : updater,
+      });
+    },
+    [queryClient],
+  );
+
+  const updateReviewVote = useCallback(
+    (reviewId: string, helpfulCount: number, downVoteCount: number) => {
+      updateInfiniteFeedItems<Review, "reviews">(queryClient, {
+        queryKey: reviewsFeedQueryKey,
+        itemsKey: "reviews",
+        updater: (currentReviews) =>
+          currentReviews.map((review) =>
+            review.id === reviewId
+              ? {
+                  ...review,
+                  helpfulCount,
+                  downVoteCount,
+                  _count: {
+                    ...review._count,
+                    helpfulVotes: helpfulCount,
+                  },
+                }
+              : review,
+          ),
+      });
+    },
+    [queryClient],
+  );
 
   return {
     reviews,

@@ -4,18 +4,26 @@ import type { Review, UserProfile, Complaint } from "@/lib/types";
 import { hasLikelyAuthCookie } from "@/lib/authCookies";
 import { PAGE_SIZE } from "@/lib/constants";
 
-/** Page size for profile reviews/complaints (match useProfileQueries). */
 const PROFILE_PAGE_SIZE = 10;
+const PUBLIC_FEED_REVALIDATE_SECONDS = 300;
+
+function getPublicFetchOptions(hasAuthContext: boolean, tags: string[]) {
+  return hasAuthContext
+    ? { cache: "no-store" as const }
+    : {
+        cache: "force-cache" as const,
+        next: {
+          revalidate: PUBLIC_FEED_REVALIDATE_SECONDS,
+          tags,
+        },
+      };
+}
 
 export interface ServerAuthResult {
   isLoggedIn: boolean;
   user: UserProfile | null;
 }
 
-/**
- * Server-only: fetch auth state from backend using request cookies.
- * Pass the result of (await cookies()).toString() or the Cookie header.
- */
 export async function getServerAuth(cookieHeader?: string): Promise<ServerAuthResult> {
   const base = getBackendUrl();
   if (!base) return { isLoggedIn: false, user: null };
@@ -43,41 +51,42 @@ export async function getServerAuth(cookieHeader?: string): Promise<ServerAuthRe
 
 export interface ServerReviewsResult {
   reviews: Review[];
+  pagination: { page: number; total: number; totalPages: number };
 }
 
-/**
- * Server-only: fetch approved reviews for the home feed.
- * Optionally pass cookie header to include user vote state.
- */
 export async function getServerReviews(options?: {
   limit?: number;
+  page?: number;
   cookieHeader?: string;
 }): Promise<ServerReviewsResult> {
   const base = getBackendUrl();
-  if (!base) return { reviews: [] };
+  if (!base) return { reviews: [], pagination: { page: 1, total: 0, totalPages: 0 } };
   const limit = options?.limit ?? PAGE_SIZE;
+  const page = options?.page ?? 1;
   const hasAuthContext = hasLikelyAuthCookie(options?.cookieHeader);
   try {
-    const url = `${base}/api/reviews?status=APPROVED&limit=${limit}`;
+    const url = `${base}/api/reviews?status=APPROVED&limit=${limit}&page=${page}`;
     const headers: HeadersInit = {};
     if (options?.cookieHeader) {
       headers["Cookie"] = options.cookieHeader;
     }
     const res = await fetch(url, {
       headers,
-      ...(hasAuthContext
-        ? { cache: "no-store" as const }
-        : { next: { revalidate: 30 } }),
+      ...getPublicFetchOptions(hasAuthContext, ["public-reviews-feed"]),
     });
     if (!res.ok) {
-      return { reviews: [] };
+      return { reviews: [], pagination: { page: 1, total: 0, totalPages: 0 } };
     }
-    const data = (await res.json()) as { reviews?: Review[] };
+    const data = (await res.json()) as {
+      reviews?: Review[];
+      pagination?: { page: number; total: number; totalPages: number };
+    };
     return {
       reviews: Array.isArray(data?.reviews) ? data.reviews : [],
+      pagination: data?.pagination ?? { page, total: 0, totalPages: 0 },
     };
   } catch {
-    return { reviews: [] };
+    return { reviews: [], pagination: { page, total: 0, totalPages: 0 } };
   }
 }
 
@@ -87,11 +96,6 @@ export interface UserProfileResponse {
   viewerState: { isFollowing: boolean };
 }
 
-/**
- * Server-only: fetch full user profile (user, stats, viewerState).
- * Pass cookieHeader to get correct isFollowing for the current viewer.
- * Deduped per-request via React cache() so metadata and page can share one fetch.
- */
 export const getServerUserProfileFull = cache(
   async (
     username: string,
@@ -115,10 +119,6 @@ export const getServerUserProfileFull = cache(
   }
 );
 
-/**
- * Server-only: fetch public user profile for metadata/SEO.
- * Returns only user; use getServerUserProfileFull for full profile + stats.
- */
 export async function getServerUserProfile(username: string): Promise<{
   user: (UserProfile & { createdAt?: string }) | null;
 }> {
@@ -131,9 +131,6 @@ export interface ServerProfileReviewsResult {
   pagination: { page: number; total: number; totalPages: number };
 }
 
-/**
- * Server-only: fetch first page of reviews for a user profile.
- */
 export async function getServerProfileReviews(
   username: string,
   options?: { page?: number; limit?: number; cookieHeader?: string }
@@ -149,9 +146,7 @@ export async function getServerProfileReviews(
     if (options?.cookieHeader) headers["Cookie"] = options.cookieHeader;
     const res = await fetch(url, {
       headers,
-      ...(hasAuthContext
-        ? { cache: "no-store" as const }
-        : { next: { revalidate: 30 } }),
+      ...getPublicFetchOptions(hasAuthContext, [`profile-reviews:${username}`]),
     });
     if (!res.ok) return { reviews: [], pagination: { page: 1, total: 0, totalPages: 0 } };
     const data = (await res.json()) as {
@@ -171,9 +166,6 @@ export interface ServerProfileComplaintsResult {
   pagination: { page: number; total: number; totalPages: number };
 }
 
-/**
- * Server-only: fetch first page of complaints for a user profile.
- */
 export async function getServerProfileComplaints(
   username: string,
   options?: { page?: number; limit?: number; cookieHeader?: string }
@@ -189,9 +181,7 @@ export async function getServerProfileComplaints(
     if (options?.cookieHeader) headers["Cookie"] = options.cookieHeader;
     const res = await fetch(url, {
       headers,
-      ...(hasAuthContext
-        ? { cache: "no-store" as const }
-        : { next: { revalidate: 30 } }),
+      ...getPublicFetchOptions(hasAuthContext, [`profile-complaints:${username}`]),
     });
     if (!res.ok) return { complaints: [], pagination: { page: 1, total: 0, totalPages: 0 } };
     const data = (await res.json()) as {
@@ -208,18 +198,16 @@ export async function getServerProfileComplaints(
 
 export interface ServerComplaintsResult {
   complaints: Complaint[];
+  pagination: { page: number; total: number; totalPages: number };
 }
 
-/**
- * Server-only: fetch complaints for the complaints page.
- */
 export async function getServerComplaints(options?: {
   limit?: number;
   page?: number;
   cookieHeader?: string;
 }): Promise<ServerComplaintsResult> {
   const base = getBackendUrl();
-  if (!base) return { complaints: [] };
+  if (!base) return { complaints: [], pagination: { page: 1, total: 0, totalPages: 0 } };
   const limit = options?.limit ?? PAGE_SIZE;
   const page = options?.page ?? 1;
   const hasAuthContext = hasLikelyAuthCookie(options?.cookieHeader);
@@ -231,18 +219,20 @@ export async function getServerComplaints(options?: {
     }
     const res = await fetch(url, {
       headers,
-      ...(hasAuthContext
-        ? { cache: "no-store" as const }
-        : { next: { revalidate: 30 } }),
+      ...getPublicFetchOptions(hasAuthContext, ["public-complaints-feed"]),
     });
     if (!res.ok) {
-      return { complaints: [] };
+      return { complaints: [], pagination: { page: 1, total: 0, totalPages: 0 } };
     }
-    const data = (await res.json()) as { complaints?: Complaint[] };
+    const data = (await res.json()) as {
+      complaints?: Complaint[];
+      pagination?: { page: number; total: number; totalPages: number };
+    };
     return {
       complaints: Array.isArray(data?.complaints) ? data.complaints : [],
+      pagination: data?.pagination ?? { page, total: 0, totalPages: 0 },
     };
   } catch {
-    return { complaints: [] };
+    return { complaints: [], pagination: { page, total: 0, totalPages: 0 } };
   }
 }

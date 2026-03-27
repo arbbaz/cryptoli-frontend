@@ -1,6 +1,10 @@
 export const queryKeys = {
   trendingOverview: (period: "week" | "month" = "week") =>
     ["trending-overview", period] as const,
+  reviewsFeed: (filters?: { status?: string; username?: string; companyId?: string; category?: string }) =>
+    ["reviews-feed", filters ?? {}] as const,
+  complaintsFeed: (filters?: { username?: string; companyId?: string; userId?: string }) =>
+    ["complaints-feed", filters ?? {}] as const,
   profile: (username: string) => ["profile", username] as const,
   profileReviews: (username: string, page?: number) =>
     ["profile-reviews", username, page ?? null] as const,

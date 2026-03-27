@@ -13,11 +13,12 @@ interface ReviewsFeedProps {
   initialReviews: Review[];
 }
 
-export default function ReviewsFeed({ initialReviews }: ReviewsFeedProps) {
+export default function ReviewsFeed({ initialReviews: _initialReviews }: ReviewsFeedProps) {
+  void _initialReviews;
   const t = useTranslations("feed");
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { reviews, loading, loadingMore, hasMore, loadMore, updateReviewVote, fetchReviews, errorMessage } =
-    useReviewsFeed(initialReviews);
+    useReviewsFeed();
   const followStatusByUsername = useReviewAuthorsFollowStatus(reviews);
 
   useInfiniteScroll(sentinelRef, { hasMore, loading, loadingMore, loadMore });

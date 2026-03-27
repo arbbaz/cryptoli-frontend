@@ -11,15 +11,15 @@ import type { Review } from "@/lib/types";
 
 interface HomeReviewsListProps {
   initialReviews: Review[];
-  /** Pass from server to avoid NextIntl context issues with Suspense + client hydration. */
   emptyMessage?: string;
 }
 
-export default function HomeReviewsList({ initialReviews, emptyMessage }: HomeReviewsListProps) {
+export default function HomeReviewsList({ initialReviews: _initialReviews, emptyMessage }: HomeReviewsListProps) {
+  void _initialReviews;
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { registerFeed } = useReviewFeed();
   const { reviews, setReviews, loading, loadingMore, hasMore, loadMore, fetchReviews, updateReviewVote, errorMessage } =
-    useReviewsFeed(initialReviews);
+    useReviewsFeed();
   const followStatusByUsername = useReviewAuthorsFollowStatus(reviews);
 
   useEffect(() => {
