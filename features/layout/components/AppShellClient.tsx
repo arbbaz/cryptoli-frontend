@@ -2,26 +2,15 @@
 
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
+import LeftSidebar from "@/features/layout/components/LeftSidebar";
+import RightSidebar from "@/features/layout/components/RightSidebar";
+
 const Header = dynamic(() => import("@/features/header/components/Header"), {
   loading: () => (
     <header
       className="min-h-[52px] sm:min-h-[60px] w-full overflow-visible border-b border-border"
       aria-hidden
     />
-  ),
-});
-
-const LeftSidebar = dynamic(() => import("@/features/layout/components/LeftSidebar"), {
-  ssr: false,
-  loading: () => (
-    <aside className="sidebar-left sidebar-border-right hidden lg:block lg:min-w-[250px]" aria-hidden />
-  ),
-});
-
-const RightSidebar = dynamic(() => import("@/features/layout/components/RightSidebar"), {
-  ssr: false,
-  loading: () => (
-    <aside className="sidebar-border-left hidden lg:block lg:min-w-[340px]" aria-hidden />
   ),
 });
 

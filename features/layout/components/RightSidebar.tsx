@@ -38,13 +38,14 @@ export default function RightSidebar() {
         )}
       </div>
 
-      {cardsLoading ? (
-        <RightSidebarLoading withAuthCard={false} />
-      ) : (
-        cards.map((card, index) => (
-          <TopRatedCard key={`${card.title}-${card.product.name}-${index}`} card={card} index={index} />
-        ))
-      )}
+      {!isAuthLoading &&
+        (cardsLoading ? (
+          <RightSidebarLoading withAuthCard={false} />
+        ) : (
+          cards.map((card, index) => (
+            <TopRatedCard key={`${card.title}-${card.product.name}-${index}`} card={card} index={index} />
+          ))
+        ))}
     </aside>
   );
 }
